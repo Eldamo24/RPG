@@ -21,7 +21,7 @@ public class PlayerController : MonoBehaviour
     
     [Header("Movement variables")]
     private Vector2 _playerInputs;
-    private float _moveSpeed;
+    private float _moveSpeed = 50f;
     [SerializeField] private float walkSpeed;
     [SerializeField] private float runSpeed;
     private bool _isRunningWithKey, _isRunningWithStick, _isRunning;
@@ -45,7 +45,7 @@ public class PlayerController : MonoBehaviour
     }
 
 
-    void Update()
+    void FixedUpdate()
     {
         _isGrounded = Physics.CheckSphere(transform.position, _groundDistance, _groundLayer);
         Movement();
