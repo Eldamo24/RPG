@@ -8,6 +8,14 @@ public class PlayerController : MonoBehaviour
     [Header("GameObjects")] 
     private GameObject _playerParent;
 
+    [Header("References")] 
+    private Transform _orientation;
+    private Transform _player;
+    private Transform _playerObj;
+    private Rigidbody _rb;
+    private Camera _cam;
+    private float _rotationSpeed = 7f;
+    
     [Header("Animation")] 
     private Animator _anim;
     
@@ -26,7 +34,14 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         _playerParent = GameObject.FindWithTag(("Player"));
-        _anim = GetComponent<Animator>();
+        _orientation = GameObject.Find("Orientation").GetComponent<Transform>();
+        _player = GetComponent<Transform>();
+        _playerObj = GameObject.Find("PlayerObj").GetComponent<Transform>();
+        _rb = GetComponent<Rigidbody>();
+        _cam = GameObject.Find("Main Camera").GetComponent<Camera>();
+        _anim = GetComponentInChildren<Animator>();
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
 
@@ -50,27 +65,40 @@ public class PlayerController : MonoBehaviour
 
     private void Movement()
     {
-        Vector3 movement = _playerInputs.x * Vector3.right + _playerInputs.y * Vector3.forward;
-        movement.Normalize();
-        if (_isGrounded && movement != Vector3.zero)
+        Vector3 viewDir = _player.position -
+                          new Vector3(_cam.transform.position.x, _player.position.y, _cam.transform.position.z);
+        _orientation.forward = viewDir.normalized;
+        Vector3 inputDir = _playerInputs.x * _orientation.right + _playerInputs.y * _orientation.forward;
+        if (inputDir != Vector3.zero)
         {
-            if(_isRunning)
-            {
-                _moveSpeed = runSpeed;
-                _anim.SetTrigger("run");
-            }
-            if (!_isRunning)
-            {
-                _moveSpeed = walkSpeed;
-                _anim.SetTrigger("walk");
-            }
+            _playerObj.forward =
+                Vector3.Slerp(_playerObj.forward, inputDir.normalized, Time.deltaTime * _rotationSpeed);
+            _rb.MovePosition(_player.position + inputDir * Time.deltaTime * _moveSpeed);
         }
-        if(movement == Vector3.zero)
-        {
-            _anim.SetTrigger("idle");
-        }
-        _playerParent.transform.Translate(movement * _moveSpeed * Time.deltaTime, Space.World);
     }
+    // private void Movement()
+    // {
+    //     Vector3 movement = _playerInputs.x * Vector3.right + _playerInputs.y * Vector3.forward;
+    //     movement.Normalize();
+    //     if (_isGrounded && movement != Vector3.zero)
+    //     {
+    //         if(_isRunning)
+    //         {
+    //             _moveSpeed = runSpeed;
+    //             _anim.SetTrigger("run");
+    //         }
+    //         if (!_isRunning)
+    //         {
+    //             _moveSpeed = walkSpeed;
+    //             _anim.SetTrigger("walk");
+    //         }
+    //     }
+    //     if(movement == Vector3.zero)
+    //     {
+    //         _anim.SetTrigger("idle");
+    //     }
+    //     _playerParent.transform.Translate(movement * _moveSpeed * Time.deltaTime, Space.World);
+    // }
 
     public void MoveInput(InputAction.CallbackContext context)
     {
